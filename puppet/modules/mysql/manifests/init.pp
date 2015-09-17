@@ -17,22 +17,25 @@ class mysql {
   file { '/etc/mysql/my.cnf':
     source  => 'puppet:///modules/mysql/my.cnf',
     require => Package['mysql-server'],
+    owner   => 'root',
+    group   => 'root',
+    mode    => 'u+rwx',
     notify  => Service['mysql'],
   }
 
   exec { 'set-mysql-password':
-    command => "/usr/bin/mysql -u root -ps3cret -e 'SELECT CURDATE();' || /usr/bin/mysqladmin -u root password s3cret",
+    command => "mysql -u root -ps3cret -e 'SELECT CURDATE();' || mysqladmin -u root password s3cret",
     path    => ['/bin', '/usr/bin'],
     require => Service['mysql'];
   }
 
   exec { 'create-database':
-    command => "/usr/bin/mysql -uroot -ps3cret -e \"create database db; grant all on db.* to root@localhost identified by 's3cret';\"",
+    command => "mysql -u root -ps3cret -e 'SELECT CURDATE();' || mysql -uroot -ps3cret -e \"create database db; grant all on db.* to root@localhost identified by 's3cret';\"",
     path    => ['/bin', '/usr/bin'],
     require => Exec['set-mysql-password'];
   }
   exec { 'load-dynamic-sql':
-    command => "mysql -u root -ps3cret db < /vagrant/puppet/modules/mysql/files/db.sql",
+    command => "mysql -u root -ps3cret -e 'SELECT CURDATE();' || mysql -u root -ps3cret db < /vagrant/puppet/modules/mysql/files/db.sql",
     path    => ['/bin', '/usr/bin'],
     require => Exec['create-database'];
   }
